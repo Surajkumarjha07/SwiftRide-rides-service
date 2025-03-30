@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import kafkaInit from "./kafkaAdmin.js";
+import consumer from "./consumer.js"
 
 dotenv.config();
 
@@ -9,6 +11,20 @@ app.get("/", (req, res) => {
     res.send("Hello! Suraj, I am ride-service");
 })
 
-app.listen(process.env.PORT, () => {
+const startKafka = async () => {
+    try {
+        await kafkaInit();
+
+        await consumer.consumerInit();
+
+        await consumer.getRideRequest();
+    } catch (error) {
+        console.log("error in initializing kafka: ", error);
+    }
+}
+
+startKafka();
+
+app.listen(process.env.PORT, "0.0.0.0", () => {
     console.log("Ride service is running!");
 })

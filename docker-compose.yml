@@ -1,50 +1,16 @@
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    container_name: rides-zookeeper
+  ride-service:
+    build: .
+    image: rides-service-image
+    container_name: rides-service
     restart: always
-    environment:
-      - ZOOKEEPER_CLIENT_PORT=2182
-      - ZOOKEEPER_TICK_TIME=1000
     ports:
-      - 2182:2182
+      - "4003:4003"
+    env_file:
+      - .env
     networks:
-      - rides-kafka-net
+      - users-kafka-net
 
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    container_name: rides-kafka
-    restart: always
-    depends_on:
-      - zookeeper
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2182
-      - KAFKA_LISTENERS=INTERNAL://kafka:9094,EXTERNAL://0.0.0.0:9093
-      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9094,EXTERNAL://localhost:9093
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
-    ports:
-      - 9093:9093
-    networks:
-      - rides-kafka-net
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: rides-kafka-ui
-    restart: always
-    depends_on:
-      - kafka
-    ports:
-      - "8081:8081"
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=rides-service-kafka
-      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka:9094
-    networks:
-      - rides-kafka-net
-    
 networks:
-  rides-kafka-net:
-    driver: bridge
+  users-kafka-net:
+    external: true
