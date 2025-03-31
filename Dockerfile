@@ -14,7 +14,7 @@ RUN npm install --omit dev
 COPY . .
 
 # exposing port to 3000
-EXPOSE 3000
+EXPOSE 4003
 
 # cmd command
 CMD [ "npm", "start" ]
