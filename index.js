@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import kafkaInit from "./kafkaAdmin.js";
-import consumer from "./consumer.js"
+import kafkaInit from "./kafka/kafkaAdmin.js";
+import consumer from "./kafka/consumer.js"
 
 dotenv.config();
 
