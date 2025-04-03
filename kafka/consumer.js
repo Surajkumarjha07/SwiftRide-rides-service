@@ -1,31 +1,23 @@
 import kafka from "./kafkaClient.js";
-import { Partitioners } from "kafkajs"
+import producer from "./producer.js";
 
-const consumer = kafka.consumer({ groupId: "ride-service-group" });
+const rideRequestConsumer = kafka.consumer({ groupId: "ride-request-group" });
+const fetchCaptainConsumer = kafka.consumer({ groupId: "fetch-captains-group" });
 
 async function consumerInit() {
-    await consumer.connect();
+    await rideRequestConsumer.connect();
+    await fetchCaptainConsumer.connect();
 }
-
-const producer = kafka.producer({
-    createPartitioner: Partitioners.LegacyPartitioner
-});
 
 async function getRideRequest() {
     try {
-        await consumer.subscribe({ topic: "ride-request", fromBeginning: true });
-        await consumer.run({
+        await rideRequestConsumer.subscribe({ topic: "ride-request", fromBeginning: true });
+        await rideRequestConsumer.run({
             eachMessage: async ({ message }) => {
                 const rideData = JSON.parse(message.value.toString())
-                console.log("ride data: ", rideData);
-                
-                await producer.connect();
-                await producer.send({
-                    topic: "captain-notify",
-                    messages: [{value: JSON.stringify(rideData)}]
-                })
+
+                await producer.sendProducerMessage("get-captains", rideData)
                 console.log(`get ride request from: ${message.value.toString()}`);
-                await producer.disconnect();
             }
         })
     } catch (error) {
@@ -33,4 +25,21 @@ async function getRideRequest() {
     }
 }
 
-export default { consumerInit, getRideRequest };
+async function captainsFetched() {
+    try {
+        await fetchCaptainConsumer.subscribe({ topic: "captains-fetched", fromBeginning: true })
+        await fetchCaptainConsumer.run({
+            eachMessage: async ({ message }) => {
+                const captains = JSON.parse(message.value.toString());
+
+                for (const captain of captains) {
+                    await producer.sendProducerMessage("accept-ride", JSON.stringify({ captain }));
+                }
+            }
+        })
+    } catch (error) {
+        console.log("error in getting fetched captains: ", error);
+    }
+}
+
+export default { consumerInit, getRideRequest, captainsFetched };
