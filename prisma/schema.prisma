@@ -15,9 +15,17 @@ datasource db {
 
 model rides {
   id Int @id @default(autoincrement())
-  captain String
-  user String
-  distance String
-  price String
-  status String
+  rideId String @unique
+  captainId String? @unique
+  userName String
+  pickUpLocation String?
+  destination String?
+  price Int?
+  status rideStatus @default(pending)
 }
+
+enum rideStatus {
+  pending
+  in_progress
+  completed
+} 
