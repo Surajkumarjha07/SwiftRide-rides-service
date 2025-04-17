@@ -31,7 +31,7 @@ async function getRideRequest() {
                             destination: rideData.destination,
                             pickUpLocation: rideData.pickUpLocation,
                             rideId: rideData.rideId,
-                            userName: rideData.userName
+                            userId: rideData.userId
                         }
                     })
 

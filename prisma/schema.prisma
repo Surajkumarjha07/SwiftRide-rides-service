@@ -17,7 +17,7 @@ model rides {
   id Int @id @default(autoincrement())
   rideId String @unique
   captainId String? @unique
-  userName String
+  userId String
   pickUpLocation String?
   destination String?
   price Int?
