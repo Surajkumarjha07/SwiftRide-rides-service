@@ -27,6 +27,7 @@ const startKafka = async () => {
         await consumer.getRideRequest();
         await consumer.captainsFetched();
         await consumer.rideAccepted();
+        await consumer.rideCompleted();
     } catch (error) {
         console.log("error in initializing kafka: ", error);
     }
