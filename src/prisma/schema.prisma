@@ -16,7 +16,7 @@ datasource db {
 model rides {
   id Int @id @default(autoincrement())
   rideId String @unique
-  captainId String? @unique
+  captainId String?
   userId String
   pickUpLocation String?
   destination String?
