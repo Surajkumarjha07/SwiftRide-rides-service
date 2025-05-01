@@ -4,7 +4,7 @@ import getRideRequest from "./consumers/getRideRequest.js";
 import rideAccepted from "./consumers/rideAccepted.js";
 import rideCompleted from "./consumers/rideCompleted.js";
 import kafkaInit from "./kafkaAdmin.js";
-import producerInit from "./producerInIt.js";
+import { producerInit } from "./producerInIt.js";
 
 const startKafka = async () => {
     try {

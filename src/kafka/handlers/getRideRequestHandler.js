@@ -1,7 +1,8 @@
-
+import prisma from "../../prisma/prismaClient.js";
+import sendProducerMessage from "../producers/producerTemplate.js";
 
 async function getRideRequestHandler({ message }) {
-    rideData = JSON.parse(message.value.toString());
+    let rideData = JSON.parse(message.value.toString());
 
     try {
         await prisma.rides.create({
@@ -19,7 +20,7 @@ async function getRideRequestHandler({ message }) {
         console.log("error in saving ride data!", error);
     }
 
-    await producer.sendProducerMessage("get-captains", rideData)
+    await sendProducerMessage("get-captains", rideData)
     console.log(`get ride request from: ${message.value.toString()}`);
 }
 

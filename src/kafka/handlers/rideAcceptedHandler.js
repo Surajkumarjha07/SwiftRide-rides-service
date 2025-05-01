@@ -1,3 +1,4 @@
+import prisma from "../../prisma/prismaClient.js";
 
 async function rideAcceptedHandler({ message }) {
     console.log(JSON.parse(message.value.toString()));
