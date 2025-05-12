@@ -1,8 +1,9 @@
+import { EachMessagePayload } from "kafkajs";
 import prisma from "../../prisma/prismaClient.js";
 import sendProducerMessage from "../producers/producerTemplate.js";
 
-async function getRideRequestHandler({ message }) {
-    let rideData = JSON.parse(message.value.toString());
+async function getRideRequestHandler({ message }: EachMessagePayload) {
+    let rideData = JSON.parse(message.value!.toString());
 
     try {
         await prisma.rides.create({
@@ -21,7 +22,7 @@ async function getRideRequestHandler({ message }) {
     }
 
     await sendProducerMessage("get-captains", rideData)
-    console.log(`get ride request from: ${message.value.toString()}`);
+    console.log(`get ride request from: ${message.value!.toString()}`);
 }
 
 export default getRideRequestHandler;

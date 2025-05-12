@@ -14,8 +14,7 @@ async function kafkaInit() {
     if (topicsToCreate.length > 0) {
         await admin.createTopics({
             topics:
-                topicsToCreate.map((t) => ({ topic: t })),
-            numPartitions: 1
+                topicsToCreate.map((t) => ({ topic: t, numPartitions: 1 })),
         })
     }
 

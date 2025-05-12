@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
+    "dev": "tsup src/index.ts --format esm --out-dir dist && concurrently \"tsup src/index.ts --format esm --out-dir dist --watch\" \"nodemon --watch dist --ext js --exec \\\"node dist/index.js\\\"\"",
+    "build": "tsup src/index.ts --format esm --out-dir dist",
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,6 +20,21 @@
     "kafkajs": "^2.2.4"
   },
   "devDependencies": {
-    "prisma": "^6.7.0"
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.1",
+    "@types/ioredis": "^4.28.10",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/kafkajs": "^1.8.2",
+    "@types/node": "^22.15.17",
+    "@types/nodemon": "^1.19.6",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.7.0",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
   }
 }

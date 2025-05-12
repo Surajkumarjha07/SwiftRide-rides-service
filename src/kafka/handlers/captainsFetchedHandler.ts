@@ -1,7 +1,8 @@
+import { EachMessagePayload } from "kafkajs";
 import sendProducerMessage from "../producers/producerTemplate.js";
 
-async function captainsFetchedHandler({ message }) {
-    const { captains, rideData } = JSON.parse(message.value.toString());   
+async function captainsFetchedHandler({ message }: EachMessagePayload) {
+    const { captains, rideData } = JSON.parse(message.value!.toString());   
 
     for (const captain of captains) {
         await sendProducerMessage("accept-ride", { captain, rideData });

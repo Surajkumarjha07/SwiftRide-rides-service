@@ -1,9 +1,10 @@
 import { rideStatus } from "@prisma/client";
 import prisma from "../../prisma/prismaClient.js";
 import sendProducerMessage from "../producers/producerTemplate.js";
+import { EachMessagePayload } from "kafkajs";
 
-async function rideCompletedHandler({ message }) {
-    const { id, rideData } = JSON.parse(message.value.toString().trim());
+async function rideCompletedHandler({ message }: EachMessagePayload) {
+    const { id, rideData } = JSON.parse(message.value!.toString().trim());
     const { rideId } = rideData;
 
     if (!id) {
@@ -14,8 +15,6 @@ async function rideCompletedHandler({ message }) {
         where: { rideId: rideId },
         data: { status: rideStatus.completed }
     })
-
-    // await sendProducerMessage("ride-confirmed", )
 }
 
 export default rideCompletedHandler;

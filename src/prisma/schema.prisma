@@ -26,6 +26,7 @@ model rides {
 
 enum rideStatus {
   pending
+  in_progress
   accepted
   completed
   cancelled
