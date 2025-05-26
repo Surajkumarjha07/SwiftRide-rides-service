@@ -19,15 +19,20 @@ model rides {
   captainId String?
   userId String
   pickUpLocation String?
+  location_latitude Float? @default(0.00)
+  location_longitude Float? @default(0.00)
   destination String?
-  price Int?
+  destination_latitude Float @default(0.00)
+  destination_longitude Float @default(0.00)
+  fare Int?
   status rideStatus @default(pending)
 }
 
 enum rideStatus {
   pending
   in_progress
-  accepted
+  assigned
   completed
   cancelled
+  unassigned
 } 

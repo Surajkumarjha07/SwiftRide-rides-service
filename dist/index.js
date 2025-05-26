@@ -23,13 +23,15 @@ var fetchCaptainConsumer = kafkaClient_default.consumer({ groupId: "fetch-captai
 var rideAcceptConsumer = kafkaClient_default.consumer({ groupId: "ride-accepted-group" });
 var rideCompletedConsumer = kafkaClient_default.consumer({ groupId: "ride-completed-group" });
 var rideCancelledConsumer = kafkaClient_default.consumer({ groupId: "ride-cancelled-group" });
+var no_captain_consumer = kafkaClient_default.consumer({ groupId: "no-captain-group" });
 async function consumerInit() {
   await Promise.all([
     rideRequestConsumer.connect(),
     fetchCaptainConsumer.connect(),
     rideAcceptConsumer.connect(),
     rideCompletedConsumer.connect(),
-    rideCancelledConsumer.connect()
+    rideCancelledConsumer.connect(),
+    no_captain_consumer.connect()
   ]);
 }
 
@@ -58,6 +60,9 @@ var producerTemplate_default = sendProducerMessage;
 // src/kafka/handlers/captainsFetchedHandler.ts
 async function captainsFetchedHandler({ message }) {
   const { captains, rideData } = JSON.parse(message.value.toString());
+  if (!captains) {
+    console.log("no captains available!");
+  }
   for (const captain of captains) {
     await producerTemplate_default("accept-ride", { captain, rideData });
   }
@@ -83,15 +88,20 @@ var prisma = new PrismaClient();
 var prismaClient_default = prisma;
 
 // src/kafka/handlers/getRideRequestHandler.ts
+import { rideStatus } from "@prisma/client";
 async function getRideRequestHandler({ message }) {
   let rideData = JSON.parse(message.value.toString());
   try {
     await prismaClient_default.rides.create({
       data: {
-        price: rideData.price,
-        status: rideData.status,
+        fare: Math.round(Number(rideData.fare)),
+        status: rideStatus.pending,
         destination: rideData.destination,
+        destination_latitude: Number(rideData.destination_latitude),
+        destination_longitude: Number(rideData.destination_longitude),
         pickUpLocation: rideData.pickUpLocation,
+        location_latitude: Number(rideData.location_latitude),
+        location_longitude: Number(rideData.location_longitude),
         rideId: rideData.rideId,
         userId: rideData.userId
       }
@@ -118,19 +128,18 @@ async function getRideRequest() {
 var getRideRequest_default = getRideRequest;
 
 // src/kafka/handlers/rideAcceptedHandler.ts
-import { rideStatus } from "@prisma/client";
+import { rideStatus as rideStatus2 } from "@prisma/client";
 async function rideAcceptedHandler({ message }) {
-  console.log(JSON.parse(message.value.toString()));
-  const { id, rideData } = JSON.parse(message.value.toString());
+  const { captainId, rideData } = JSON.parse(message.value.toString());
   const { rideId } = rideData;
   await prismaClient_default.rides.updateMany({
-    where: { rideId, status: rideStatus.pending },
+    where: { rideId, status: rideStatus2.pending },
     data: {
-      captainId: id,
-      status: rideStatus.accepted
+      captainId,
+      status: rideStatus2.accepted
     }
   });
-  await producerTemplate_default("ride-confirmed", { id, rideData });
+  await producerTemplate_default("ride-confirmed", { captainId, rideData });
 }
 var rideAcceptedHandler_default = rideAcceptedHandler;
 
@@ -148,7 +157,7 @@ async function rideAccepted() {
 var rideAccepted_default = rideAccepted;
 
 // src/kafka/handlers/rideCancelledHandler.ts
-import { rideStatus as rideStatus2 } from "@prisma/client";
+import { rideStatus as rideStatus3 } from "@prisma/client";
 async function rideCancelledHandler({ message }) {
   try {
     const rideData = JSON.parse(message.value.toString());
@@ -157,11 +166,11 @@ async function rideCancelledHandler({ message }) {
       where: {
         rideId,
         status: {
-          in: [rideStatus2.pending, rideStatus2.accepted]
+          in: [rideStatus3.pending, rideStatus3.accepted]
         }
       },
       data: {
-        status: rideStatus2.cancelled
+        status: rideStatus3.cancelled
       }
     });
   } catch (error) {
@@ -188,17 +197,18 @@ async function rideCancelled() {
 var rideCancelled_default = rideCancelled;
 
 // src/kafka/handlers/rideCompleted.ts
-import { rideStatus as rideStatus3 } from "@prisma/client";
+import { rideStatus as rideStatus4 } from "@prisma/client";
 async function rideCompletedHandler({ message }) {
-  const { id, rideData } = JSON.parse(message.value.toString().trim());
+  const { captainId, rideData } = JSON.parse(message.value.toString().trim());
   const { rideId } = rideData;
-  if (!id) {
+  if (!captainId) {
     throw new Error("Invalid message: ID is missing");
   }
   await prismaClient_default.rides.update({
     where: { rideId },
-    data: { status: rideStatus3.completed }
+    data: { status: rideStatus4.completed }
   });
+  await producerTemplate_default("ride-completed-notify-user", { captainId, rideData });
 }
 var rideCompleted_default = rideCompletedHandler;
 

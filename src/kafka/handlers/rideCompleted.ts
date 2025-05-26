@@ -4,10 +4,10 @@ import sendProducerMessage from "../producers/producerTemplate.js";
 import { EachMessagePayload } from "kafkajs";
 
 async function rideCompletedHandler({ message }: EachMessagePayload) {
-    const { id, rideData } = JSON.parse(message.value!.toString().trim());
+    const { captainId, rideData } = JSON.parse(message.value!.toString().trim());
     const { rideId } = rideData;
 
-    if (!id) {
+    if (!captainId) {
         throw new Error("Invalid message: ID is missing");
     }
 
@@ -15,6 +15,8 @@ async function rideCompletedHandler({ message }: EachMessagePayload) {
         where: { rideId: rideId },
         data: { status: rideStatus.completed }
     })
+
+    await sendProducerMessage("ride-completed-notify-user", { captainId, rideData });
 }
 
 export default rideCompletedHandler;

@@ -5,6 +5,7 @@ const fetchCaptainConsumer = kafka.consumer({ groupId: "fetch-captains-group" })
 const rideAcceptConsumer = kafka.consumer({ groupId: "ride-accepted-group" });
 const rideCompletedConsumer = kafka.consumer({ groupId: "ride-completed-group" });
 const rideCancelledConsumer = kafka.consumer({ groupId: "ride-cancelled-group" });
+const no_captain_consumer = kafka.consumer({groupId: "no-captain-group"});
 
 async function consumerInit() {
     await Promise.all([
@@ -12,8 +13,9 @@ async function consumerInit() {
         fetchCaptainConsumer.connect(),
         rideAcceptConsumer.connect(),
         rideCompletedConsumer.connect(),
-        rideCancelledConsumer.connect()
+        rideCancelledConsumer.connect(),
+        no_captain_consumer.connect()
     ])
 }
 
-export { consumerInit, rideAcceptConsumer, fetchCaptainConsumer, rideRequestConsumer, rideCompletedConsumer, rideCancelledConsumer };
+export { consumerInit, rideAcceptConsumer, fetchCaptainConsumer, rideRequestConsumer, rideCompletedConsumer, rideCancelledConsumer, no_captain_consumer };

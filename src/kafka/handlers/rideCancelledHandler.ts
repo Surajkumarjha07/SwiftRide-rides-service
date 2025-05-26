@@ -10,7 +10,7 @@ async function rideCancelledHandler({ message }: EachMessagePayload) {
         await prisma.rides.updateMany({
             where: {
                 rideId: rideId, status: {
-                    in: [rideStatus.pending, rideStatus.accepted]
+                    in: [rideStatus.pending, rideStatus.assigned]
                 }
             },
             data: {
