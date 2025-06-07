@@ -24,6 +24,7 @@ var rideAcceptConsumer = kafkaClient_default.consumer({ groupId: "ride-accepted-
 var rideCompletedConsumer = kafkaClient_default.consumer({ groupId: "ride-completed-group" });
 var rideCancelledConsumer = kafkaClient_default.consumer({ groupId: "ride-cancelled-group" });
 var no_captain_consumer = kafkaClient_default.consumer({ groupId: "no-captain-group" });
+var payment_settled_consumer = kafkaClient_default.consumer({ groupId: "payment-settled-group" });
 async function consumerInit() {
   await Promise.all([
     rideRequestConsumer.connect(),
@@ -31,7 +32,8 @@ async function consumerInit() {
     rideAcceptConsumer.connect(),
     rideCompletedConsumer.connect(),
     rideCancelledConsumer.connect(),
-    no_captain_consumer.connect()
+    no_captain_consumer.connect(),
+    payment_settled_consumer.connect()
   ]);
 }
 
@@ -62,8 +64,10 @@ async function captainsFetchedHandler({ message }) {
   const { captains, rideData } = JSON.parse(message.value.toString());
   if (!captains) {
     console.log("no captains available!");
+    return;
   }
   for (const captain of captains) {
+    console.log("capt: " + captain.captainId);
     await producerTemplate_default("accept-ride", { captain, rideData });
   }
 }
@@ -82,17 +86,17 @@ async function captainsFetched() {
 }
 var captainsFetched_default = captainsFetched;
 
-// src/prisma/prismaClient.ts
+// src/config/database.ts
 import { PrismaClient } from "@prisma/client";
 var prisma = new PrismaClient();
-var prismaClient_default = prisma;
+var database_default = prisma;
 
 // src/kafka/handlers/getRideRequestHandler.ts
 import { rideStatus } from "@prisma/client";
 async function getRideRequestHandler({ message }) {
   let rideData = JSON.parse(message.value.toString());
   try {
-    await prismaClient_default.rides.create({
+    await database_default.rides.create({
       data: {
         fare: Math.round(Number(rideData.fare)),
         status: rideStatus.pending,
@@ -100,8 +104,8 @@ async function getRideRequestHandler({ message }) {
         destination_latitude: Number(rideData.destination_latitude),
         destination_longitude: Number(rideData.destination_longitude),
         pickUpLocation: rideData.pickUpLocation,
-        location_latitude: Number(rideData.location_latitude),
-        location_longitude: Number(rideData.location_longitude),
+        pickUpLocation_latitude: Number(rideData.pickUpLocation_latitude),
+        pickUpLocation_longitude: Number(rideData.pickUpLocation_longitude),
         rideId: rideData.rideId,
         userId: rideData.userId
       }
@@ -110,7 +114,6 @@ async function getRideRequestHandler({ message }) {
     console.log("error in saving ride data!", error);
   }
   await producerTemplate_default("get-captains", rideData);
-  console.log(`get ride request from: ${message.value.toString()}`);
 }
 var getRideRequestHandler_default = getRideRequestHandler;
 
@@ -127,16 +130,53 @@ async function getRideRequest() {
 }
 var getRideRequest_default = getRideRequest;
 
+// src/kafka/handlers/paymenSettledHandler.ts
+import { paymentStatus, rideStatus as rideStatus2 } from "@prisma/client";
+async function paymentSettledHandler({ message }) {
+  try {
+    const { userId, captainId, rideId, fare, order } = JSON.parse(message.value.toString());
+    await database_default.rides.update({
+      where: {
+        rideId
+      },
+      data: {
+        status: rideStatus2.completed,
+        payment_status: paymentStatus.success
+      }
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error in payment-settled handler: ${error.message}`);
+    }
+  }
+}
+var paymenSettledHandler_default = paymentSettledHandler;
+
+// src/kafka/consumers/paymentSettled.ts
+async function paymentSettled() {
+  try {
+    await payment_settled_consumer.subscribe({ topic: "payment-settled", fromBeginning: true });
+    await payment_settled_consumer.run({
+      eachMessage: paymenSettledHandler_default
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error in payment-settled consumer: ${error.message}`);
+    }
+  }
+}
+var paymentSettled_default = paymentSettled;
+
 // src/kafka/handlers/rideAcceptedHandler.ts
-import { rideStatus as rideStatus2 } from "@prisma/client";
+import { rideStatus as rideStatus3 } from "@prisma/client";
 async function rideAcceptedHandler({ message }) {
   const { captainId, rideData } = JSON.parse(message.value.toString());
   const { rideId } = rideData;
-  await prismaClient_default.rides.updateMany({
-    where: { rideId, status: rideStatus2.pending },
+  await database_default.rides.updateMany({
+    where: { rideId, status: rideStatus3.pending },
     data: {
       captainId,
-      status: rideStatus2.accepted
+      status: rideStatus3.assigned
     }
   });
   await producerTemplate_default("ride-confirmed", { captainId, rideData });
@@ -157,20 +197,20 @@ async function rideAccepted() {
 var rideAccepted_default = rideAccepted;
 
 // src/kafka/handlers/rideCancelledHandler.ts
-import { rideStatus as rideStatus3 } from "@prisma/client";
+import { rideStatus as rideStatus4 } from "@prisma/client";
 async function rideCancelledHandler({ message }) {
   try {
     const rideData = JSON.parse(message.value.toString());
     const { rideId } = rideData;
-    await prismaClient_default.rides.updateMany({
+    await database_default.rides.updateMany({
       where: {
         rideId,
         status: {
-          in: [rideStatus3.pending, rideStatus3.accepted]
+          in: [rideStatus4.pending, rideStatus4.assigned]
         }
       },
       data: {
-        status: rideStatus3.cancelled
+        status: rideStatus4.cancelled
       }
     });
   } catch (error) {
@@ -195,35 +235,6 @@ async function rideCancelled() {
   }
 }
 var rideCancelled_default = rideCancelled;
-
-// src/kafka/handlers/rideCompleted.ts
-import { rideStatus as rideStatus4 } from "@prisma/client";
-async function rideCompletedHandler({ message }) {
-  const { captainId, rideData } = JSON.parse(message.value.toString().trim());
-  const { rideId } = rideData;
-  if (!captainId) {
-    throw new Error("Invalid message: ID is missing");
-  }
-  await prismaClient_default.rides.update({
-    where: { rideId },
-    data: { status: rideStatus4.completed }
-  });
-  await producerTemplate_default("ride-completed-notify-user", { captainId, rideData });
-}
-var rideCompleted_default = rideCompletedHandler;
-
-// src/kafka/consumers/rideCompleted.ts
-async function rideCompleted() {
-  try {
-    await rideCompletedConsumer.subscribe({ topic: "ride-completed", fromBeginning: true });
-    await rideCompletedConsumer.run({
-      eachMessage: rideCompleted_default
-    });
-  } catch (error) {
-    console.log("error in completing ride!");
-  }
-}
-var rideCompleted_default2 = rideCompleted;
 
 // src/kafka/kafkaAdmin.ts
 async function kafkaInit() {
@@ -257,8 +268,8 @@ var startKafka = async () => {
     await getRideRequest_default();
     await captainsFetched_default();
     await rideAccepted_default();
-    await rideCompleted_default2();
     await rideCancelled_default();
+    await paymentSettled_default();
   } catch (error) {
     console.log("error in initializing kafka: ", error);
   }

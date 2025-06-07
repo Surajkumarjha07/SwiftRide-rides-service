@@ -1,5 +1,5 @@
 import { EachMessagePayload } from "kafkajs";
-import prisma from "../../prisma/prismaClient.js";
+import prisma from "../../config/database.js";
 import { rideStatus } from "@prisma/client";
 import sendProducerMessage from "../producers/producerTemplate.js";
 
