@@ -1,21 +1,21 @@
-import { EachMessagePayload } from "kafkajs";
-import sendProducerMessage from "../producers/producerTemplate.js";
+// import { EachMessagePayload } from "kafkajs";
+// import sendProducerMessage from "../producers/producerTemplate.js";
 
-async function captainsFetchedHandler({ message }: EachMessagePayload) {    
-    const { captains, rideData } = JSON.parse(message.value!.toString());   
+// async function captainsFetchedHandler({ message }: EachMessagePayload) {
+//     const { captains, rideData } = JSON.parse(message.value!.toString());
 
-    if (!captains) {
-        console.log("no captains available!");
-        return;
-    }    
+//     if (!captains) {
+//         console.log("no captains available!");
+//         return;
+//     }
 
-    for (const captain of captains) {        
-        console.log("capt: " + captain.captainId);
-        
-        await sendProducerMessage("accept-ride", { captain, rideData });
+//     for (const captain of captains) {
+//         console.log("capt: " + captain.captainId);
 
-        // later we will emit sockets or something similar to mobile interactivity
-    }
-}
+//         await sendProducerMessage("accept-ride", { captain, rideData });
 
-export default captainsFetchedHandler;
+//         // later we will emit sockets or something similar to mobile interactivity
+//     }
+// }
+
+// export default captainsFetchedHandler;

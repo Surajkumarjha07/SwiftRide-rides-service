@@ -18,7 +18,8 @@ async function getRideRequestHandler({ message }: EachMessagePayload) {
                 pickUpLocation_latitude: Number(rideData.pickUpLocation_latitude),
                 pickUpLocation_longitude: Number(rideData.pickUpLocation_longitude),
                 rideId: rideData.rideId,
-                userId: rideData.userId
+                userId: rideData.userId,
+                vehicle: rideData.vehicle
             }
         })
 

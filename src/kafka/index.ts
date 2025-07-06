@@ -1,5 +1,5 @@
 import { consumerInit } from "./consumerInIt.js";
-import captainsFetched from "./consumers/captainsFetched.js";
+// import captainsFetched from "./consumers/captainsFetched.js";
 import getRideRequest from "./consumers/getRideRequest.js";
 import paymentSettled from "./consumers/paymentSettled.js";
 import rideAccepted from "./consumers/rideAccepted.js";
@@ -20,7 +20,7 @@ const startKafka = async () => {
         console.log("Producer initializated");
 
         await getRideRequest();
-        await captainsFetched();
+        // await captainsFetched();
         await rideAccepted();
         await rideCancelled();
         await paymentSettled();

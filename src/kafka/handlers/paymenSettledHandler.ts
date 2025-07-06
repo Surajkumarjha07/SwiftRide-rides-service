@@ -4,7 +4,7 @@ import { paymentStatus, rideStatus } from "@prisma/client";
 
 async function paymentSettledHandler({ message }: EachMessagePayload) {
     try {
-        const { userId, captainId, rideId, fare, order } = JSON.parse(message.value!.toString());
+        const { rideId } = JSON.parse(message.value!.toString());
 
         await prisma.rides.update({
             where: {

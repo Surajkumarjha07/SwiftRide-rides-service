@@ -25,6 +25,8 @@ model rides {
   destination_latitude     Float         @default(0.00)
   destination_longitude    Float         @default(0.00)
   fare                     Int?
+  vehicle                  String?
+  vehicle_number           String?
   status                   rideStatus    @default(pending)
   payment_status           paymentStatus @default(pending)
 }
