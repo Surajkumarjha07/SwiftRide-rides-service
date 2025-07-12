@@ -68,7 +68,7 @@ var producerTemplate_default = sendProducerMessage;
 // src/kafka/handlers/getRideRequestHandler.ts
 import { rideStatus } from "@prisma/client";
 async function getRideRequestHandler({ message }) {
-  let rideData = JSON.parse(message.value.toString());
+  const { rideData } = JSON.parse(message.value.toString());
   try {
     await database_default.rides.create({
       data: {

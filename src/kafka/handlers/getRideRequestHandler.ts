@@ -4,7 +4,7 @@ import sendProducerMessage from "../producers/producerTemplate.js";
 import { rideStatus } from "@prisma/client";
 
 async function getRideRequestHandler({ message }: EachMessagePayload) {
-    let rideData = JSON.parse(message.value!.toString());
+    const { rideData } = JSON.parse(message.value!.toString());
     
     try {
         await prisma.rides.create({
