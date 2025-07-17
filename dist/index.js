@@ -42,6 +42,44 @@ import { PrismaClient } from "@prisma/client";
 var prisma = new PrismaClient();
 var database_default = prisma;
 
+// src/kafka/handlers/captainNotFoundHandler.ts
+import { rideStatus } from "@prisma/client";
+async function captainNotFoundHandler({ message }) {
+  try {
+    const { rideData } = JSON.parse(message.value.toString());
+    const { rideId } = rideData;
+    console.log("no captain found!");
+    await database_default.rides.updateMany({
+      where: {
+        rideId
+      },
+      data: {
+        status: rideStatus.unassigned
+      }
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log("Error in captain-not-found handler: " + error.message);
+    }
+  }
+}
+var captainNotFoundHandler_default = captainNotFoundHandler;
+
+// src/kafka/consumers/captainNotFound.ts
+async function captainNotFound() {
+  try {
+    await no_captain_consumer.subscribe({ topic: "no-captain-found-notify-ride", fromBeginning: true });
+    await no_captain_consumer.run({
+      eachMessage: captainNotFoundHandler_default
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error("Error in no-captain-found consumer: " + error.message);
+    }
+  }
+}
+var captainNotFound_default = captainNotFound;
+
 // src/kafka/producerInIt.ts
 import { Partitioners } from "kafkajs";
 var producer = kafkaClient_default.producer({
@@ -66,14 +104,14 @@ async function sendProducerMessage(topic, value) {
 var producerTemplate_default = sendProducerMessage;
 
 // src/kafka/handlers/getRideRequestHandler.ts
-import { rideStatus } from "@prisma/client";
+import { rideStatus as rideStatus2 } from "@prisma/client";
 async function getRideRequestHandler({ message }) {
   const { rideData } = JSON.parse(message.value.toString());
   try {
     await database_default.rides.create({
       data: {
         fare: Math.round(Number(rideData.fare)),
-        status: rideStatus.pending,
+        status: rideStatus2.pending,
         destination: rideData.destination,
         destination_latitude: Number(rideData.destination_latitude),
         destination_longitude: Number(rideData.destination_longitude),
@@ -106,7 +144,7 @@ async function getRideRequest() {
 var getRideRequest_default = getRideRequest;
 
 // src/kafka/handlers/paymenSettledHandler.ts
-import { paymentStatus, rideStatus as rideStatus2 } from "@prisma/client";
+import { paymentStatus, rideStatus as rideStatus3 } from "@prisma/client";
 async function paymentSettledHandler({ message }) {
   try {
     const { rideId } = JSON.parse(message.value.toString());
@@ -115,7 +153,7 @@ async function paymentSettledHandler({ message }) {
         rideId
       },
       data: {
-        status: rideStatus2.completed,
+        status: rideStatus3.completed,
         payment_status: paymentStatus.success
       }
     });
@@ -143,15 +181,17 @@ async function paymentSettled() {
 var paymentSettled_default = paymentSettled;
 
 // src/kafka/handlers/rideAcceptedHandler.ts
-import { rideStatus as rideStatus3 } from "@prisma/client";
+import { rideStatus as rideStatus4 } from "@prisma/client";
 async function rideAcceptedHandler({ message }) {
   const { captainId, rideData } = JSON.parse(message.value.toString());
-  const { rideId } = rideData;
+  const { rideId, vehicle, vehicle_number } = rideData;
   await database_default.rides.updateMany({
-    where: { rideId, status: rideStatus3.pending },
+    where: { rideId, status: rideStatus4.pending },
     data: {
       captainId,
-      status: rideStatus3.assigned
+      status: rideStatus4.assigned,
+      vehicle,
+      vehicle_number
     }
   });
   await producerTemplate_default("ride-confirmed", { captainId, rideData });
@@ -172,7 +212,7 @@ async function rideAccepted() {
 var rideAccepted_default = rideAccepted;
 
 // src/kafka/handlers/rideCancelledHandler.ts
-import { rideStatus as rideStatus4 } from "@prisma/client";
+import { rideStatus as rideStatus5 } from "@prisma/client";
 async function rideCancelledHandler({ message }) {
   try {
     const rideData = JSON.parse(message.value.toString());
@@ -181,11 +221,11 @@ async function rideCancelledHandler({ message }) {
       where: {
         rideId,
         status: {
-          in: [rideStatus4.pending, rideStatus4.assigned]
+          in: [rideStatus5.pending, rideStatus5.assigned]
         }
       },
       data: {
-        status: rideStatus4.cancelled
+        status: rideStatus5.cancelled
       }
     });
   } catch (error) {
@@ -243,6 +283,7 @@ var startKafka = async () => {
     await getRideRequest_default();
     await rideAccepted_default();
     await rideCancelled_default();
+    await captainNotFound_default();
     await paymentSettled_default();
   } catch (error) {
     console.log("error in initializing kafka: ", error);

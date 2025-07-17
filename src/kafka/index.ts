@@ -1,5 +1,5 @@
 import { consumerInit } from "./consumerInIt.js";
-// import captainsFetched from "./consumers/captainsFetched.js";
+import captainNotFound from "./consumers/captainNotFound.js";
 import getRideRequest from "./consumers/getRideRequest.js";
 import paymentSettled from "./consumers/paymentSettled.js";
 import rideAccepted from "./consumers/rideAccepted.js";
@@ -23,6 +23,7 @@ const startKafka = async () => {
         // await captainsFetched();
         await rideAccepted();
         await rideCancelled();
+        await captainNotFound();
         await paymentSettled();
 
     } catch (error) {

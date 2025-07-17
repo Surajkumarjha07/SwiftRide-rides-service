@@ -5,13 +5,15 @@ import sendProducerMessage from "../producers/producerTemplate.js";
 
 async function rideAcceptedHandler({ message }: EachMessagePayload) {
     const { captainId, rideData } = JSON.parse(message.value!.toString());
-    const { rideId } = rideData;
+    const { rideId, vehicle, vehicle_number } = rideData;
 
     await prisma.rides.updateMany({
         where: { rideId: rideId, status: rideStatus.pending },
         data: {
             captainId: captainId,
-            status: rideStatus.assigned
+            status: rideStatus.assigned,
+            vehicle: vehicle,
+            vehicle_number: vehicle_number
         }
     });
 

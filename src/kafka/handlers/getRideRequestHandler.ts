@@ -5,7 +5,7 @@ import { rideStatus } from "@prisma/client";
 
 async function getRideRequestHandler({ message }: EachMessagePayload) {
     const { rideData } = JSON.parse(message.value!.toString());
-    
+
     try {
         await prisma.rides.create({
             data: {
