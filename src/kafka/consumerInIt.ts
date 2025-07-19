@@ -4,9 +4,10 @@ const rideRequestConsumer = kafka.consumer({ groupId: "ride-request-group" });
 const fetchCaptainConsumer = kafka.consumer({ groupId: "fetch-captains-group" });
 const rideAcceptConsumer = kafka.consumer({ groupId: "ride-accepted-group" });
 const rideCompletedConsumer = kafka.consumer({ groupId: "ride-completed-group" });
-const rideCancelledConsumer = kafka.consumer({ groupId: "ride-cancelled-group" });
+const rideCancelledConsumer = kafka.consumer({ groupId: "ride-cancelled-group-ride" });
 const no_captain_consumer = kafka.consumer({ groupId: "no-captain-group" });
 const payment_settled_consumer = kafka.consumer({ groupId: "payment-settled-group" });
+const captain_not_assigned = kafka.consumer({groupId: "captain-not-assigned"});
 
 async function consumerInit() {
     await Promise.all([
@@ -16,8 +17,9 @@ async function consumerInit() {
         rideCompletedConsumer.connect(),
         rideCancelledConsumer.connect(),
         no_captain_consumer.connect(),
-        payment_settled_consumer.connect()
+        payment_settled_consumer.connect(),
+        captain_not_assigned.connect()
     ])
 }
 
-export { consumerInit, rideAcceptConsumer, fetchCaptainConsumer, rideRequestConsumer, rideCompletedConsumer, rideCancelledConsumer, no_captain_consumer, payment_settled_consumer };
+export { consumerInit, rideAcceptConsumer, fetchCaptainConsumer, rideRequestConsumer, rideCompletedConsumer, rideCancelledConsumer, no_captain_consumer, payment_settled_consumer, captain_not_assigned };

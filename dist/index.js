@@ -22,9 +22,10 @@ var rideRequestConsumer = kafkaClient_default.consumer({ groupId: "ride-request-
 var fetchCaptainConsumer = kafkaClient_default.consumer({ groupId: "fetch-captains-group" });
 var rideAcceptConsumer = kafkaClient_default.consumer({ groupId: "ride-accepted-group" });
 var rideCompletedConsumer = kafkaClient_default.consumer({ groupId: "ride-completed-group" });
-var rideCancelledConsumer = kafkaClient_default.consumer({ groupId: "ride-cancelled-group" });
+var rideCancelledConsumer = kafkaClient_default.consumer({ groupId: "ride-cancelled-group-ride" });
 var no_captain_consumer = kafkaClient_default.consumer({ groupId: "no-captain-group" });
 var payment_settled_consumer = kafkaClient_default.consumer({ groupId: "payment-settled-group" });
+var captain_not_assigned = kafkaClient_default.consumer({ groupId: "captain-not-assigned" });
 async function consumerInit() {
   await Promise.all([
     rideRequestConsumer.connect(),
@@ -33,7 +34,8 @@ async function consumerInit() {
     rideCompletedConsumer.connect(),
     rideCancelledConsumer.connect(),
     no_captain_consumer.connect(),
-    payment_settled_consumer.connect()
+    payment_settled_consumer.connect(),
+    captain_not_assigned.connect()
   ]);
 }
 
@@ -42,8 +44,44 @@ import { PrismaClient } from "@prisma/client";
 var prisma = new PrismaClient();
 var database_default = prisma;
 
-// src/kafka/handlers/captainNotFoundHandler.ts
+// src/kafka/handlers/captainNotAssignedHandler.ts
 import { rideStatus } from "@prisma/client";
+async function captainNotAssignedHandler({ message }) {
+  try {
+    const { rideData } = JSON.parse(message.value.toString());
+    const { rideId } = rideData;
+    if (!rideId) {
+      console.log("rideId not available");
+    }
+    await database_default.rides.update({
+      where: {
+        rideId
+      },
+      data: {
+        status: rideStatus.unassigned
+      }
+    });
+  } catch (error) {
+    throw new Error("Error in captain-not-assigned handler: " + error.message);
+  }
+}
+var captainNotAssignedHandler_default = captainNotAssignedHandler;
+
+// src/kafka/consumers/captainNotAssigned.ts
+async function captainNotAssigned() {
+  try {
+    await captain_not_assigned.subscribe({ topic: "no-captain-assigned", fromBeginning: true });
+    await captain_not_assigned.run({
+      eachMessage: captainNotAssignedHandler_default
+    });
+  } catch (error) {
+    throw new Error("Error in captain-not-assigned consumer: " + error.message);
+  }
+}
+var captainNotAssigned_default = captainNotAssigned;
+
+// src/kafka/handlers/captainNotFoundHandler.ts
+import { rideStatus as rideStatus2 } from "@prisma/client";
 async function captainNotFoundHandler({ message }) {
   try {
     const { rideData } = JSON.parse(message.value.toString());
@@ -54,7 +92,7 @@ async function captainNotFoundHandler({ message }) {
         rideId
       },
       data: {
-        status: rideStatus.unassigned
+        status: rideStatus2.unassigned
       }
     });
   } catch (error) {
@@ -104,14 +142,14 @@ async function sendProducerMessage(topic, value) {
 var producerTemplate_default = sendProducerMessage;
 
 // src/kafka/handlers/getRideRequestHandler.ts
-import { rideStatus as rideStatus2 } from "@prisma/client";
+import { rideStatus as rideStatus3 } from "@prisma/client";
 async function getRideRequestHandler({ message }) {
   const { rideData } = JSON.parse(message.value.toString());
   try {
     await database_default.rides.create({
       data: {
         fare: Math.round(Number(rideData.fare)),
-        status: rideStatus2.pending,
+        status: rideStatus3.pending,
         destination: rideData.destination,
         destination_latitude: Number(rideData.destination_latitude),
         destination_longitude: Number(rideData.destination_longitude),
@@ -144,7 +182,7 @@ async function getRideRequest() {
 var getRideRequest_default = getRideRequest;
 
 // src/kafka/handlers/paymenSettledHandler.ts
-import { paymentStatus, rideStatus as rideStatus3 } from "@prisma/client";
+import { paymentStatus, rideStatus as rideStatus4 } from "@prisma/client";
 async function paymentSettledHandler({ message }) {
   try {
     const { rideId } = JSON.parse(message.value.toString());
@@ -153,7 +191,7 @@ async function paymentSettledHandler({ message }) {
         rideId
       },
       data: {
-        status: rideStatus3.completed,
+        status: rideStatus4.completed,
         payment_status: paymentStatus.success
       }
     });
@@ -181,15 +219,15 @@ async function paymentSettled() {
 var paymentSettled_default = paymentSettled;
 
 // src/kafka/handlers/rideAcceptedHandler.ts
-import { rideStatus as rideStatus4 } from "@prisma/client";
+import { rideStatus as rideStatus5 } from "@prisma/client";
 async function rideAcceptedHandler({ message }) {
   const { captainId, rideData } = JSON.parse(message.value.toString());
   const { rideId, vehicle, vehicle_number } = rideData;
   await database_default.rides.updateMany({
-    where: { rideId, status: rideStatus4.pending },
+    where: { rideId, status: rideStatus5.pending },
     data: {
       captainId,
-      status: rideStatus4.assigned,
+      status: rideStatus5.assigned,
       vehicle,
       vehicle_number
     }
@@ -212,7 +250,7 @@ async function rideAccepted() {
 var rideAccepted_default = rideAccepted;
 
 // src/kafka/handlers/rideCancelledHandler.ts
-import { rideStatus as rideStatus5 } from "@prisma/client";
+import { rideStatus as rideStatus6 } from "@prisma/client";
 async function rideCancelledHandler({ message }) {
   try {
     const rideData = JSON.parse(message.value.toString());
@@ -221,11 +259,11 @@ async function rideCancelledHandler({ message }) {
       where: {
         rideId,
         status: {
-          in: [rideStatus5.pending, rideStatus5.assigned]
+          in: [rideStatus6.pending, rideStatus6.assigned]
         }
       },
       data: {
-        status: rideStatus5.cancelled
+        status: rideStatus6.cancelled
       }
     });
   } catch (error) {
@@ -285,6 +323,7 @@ var startKafka = async () => {
     await rideCancelled_default();
     await captainNotFound_default();
     await paymentSettled_default();
+    await captainNotAssigned_default();
   } catch (error) {
     console.log("error in initializing kafka: ", error);
   }
