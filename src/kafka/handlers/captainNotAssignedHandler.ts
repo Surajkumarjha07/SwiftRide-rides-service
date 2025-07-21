@@ -8,7 +8,7 @@ async function captainNotAssignedHandler({ message }: EachMessagePayload) {
         const { rideId } = rideData;
 
         if (!rideId) {
-            console.log("rideId not available");            
+            throw new Error("rideId not available");         
         }
 
         await prisma.rides.update({

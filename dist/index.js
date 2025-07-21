@@ -51,7 +51,7 @@ async function captainNotAssignedHandler({ message }) {
     const { rideData } = JSON.parse(message.value.toString());
     const { rideId } = rideData;
     if (!rideId) {
-      console.log("rideId not available");
+      throw new Error("rideId not available");
     }
     await database_default.rides.update({
       where: {
