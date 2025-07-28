@@ -1,10 +1,10 @@
 import { consumerInit } from "./consumerInIt.js";
-import captainNotAssigned from "./consumers/captainNotAssigned.js";
-import captainNotFound from "./consumers/captainNotFound.js";
-import getRideRequest from "./consumers/getRideRequest.js";
-import paymentSettled from "./consumers/paymentSettled.js";
-import rideAccepted from "./consumers/rideAccepted.js";
-import rideCancelled from "./consumers/rideCancelled.js";
+import captainNotAssigned from "./consumers/captainNotAssigned.consumer.js";
+import captainNotFound from "./consumers/captainNotFound.consumer.js";
+import getRideRequest from "./consumers/getRideRequest.consumer.js";
+import paymentSettled from "./consumers/paymentSettled.consumer.js";
+import rideAccepted from "./consumers/rideAccepted.consumer.js";
+import rideCancelled from "./consumers/rideCancelled.consumer.js";
 import kafkaInit from "./kafkaAdmin.js";
 import { producerInit } from "./producerInIt.js";
 

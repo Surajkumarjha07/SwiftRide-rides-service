@@ -1,5 +1,5 @@
 import { no_captain_consumer } from "../consumerInIt.js";
-import captainNotFoundHandler from "../handlers/captainNotFoundHandler.js";
+import captainNotFoundHandler from "../handlers/captainNotFound.handler.js";
 
 async function captainNotFound() {
     try {

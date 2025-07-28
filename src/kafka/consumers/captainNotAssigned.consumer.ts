@@ -1,5 +1,5 @@
 import { captain_not_assigned } from "../consumerInIt.js";
-import captainNotAssignedHandler from "../handlers/captainNotAssignedHandler.js";
+import captainNotAssignedHandler from "../handlers/captainNotAssigned.handler.js";
 
 async function captainNotAssigned() {
     try {

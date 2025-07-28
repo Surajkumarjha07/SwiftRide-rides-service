@@ -1,5 +1,5 @@
 import { rideAcceptConsumer } from "../consumerInIt.js";
-import rideAcceptedHandler from "../handlers/rideAcceptedHandler.js";
+import rideAcceptedHandler from "../handlers/rideAccepted.handler.js";
 
 async function rideAccepted() {
     try {
