@@ -1,9 +1,9 @@
 import { no_captain_consumer } from "../consumerInIt.js";
-import captainNotFoundHandler from "../handlers/captainNotFoundHandler.js";
+import captainNotFoundHandler from "../handlers/captainNotFound.handler.js";
 
 async function captainNotFound() {
     try {
-        await no_captain_consumer.subscribe({ topic: "no-captain-found", fromBeginning: true});
+        await no_captain_consumer.subscribe({ topic: "no-captain-found-notify-ride", fromBeginning: true});
         await no_captain_consumer.run({
             eachMessage: captainNotFoundHandler
         })

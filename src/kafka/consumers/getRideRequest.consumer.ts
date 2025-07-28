@@ -1,5 +1,5 @@
 import { rideRequestConsumer } from "../consumerInIt.js";
-import getRideRequestHandler from "../handlers/getRideRequestHandler.js";
+import getRideRequestHandler from "../handlers/getRideRequest.handler.js";
 
 async function getRideRequest() {
     try {

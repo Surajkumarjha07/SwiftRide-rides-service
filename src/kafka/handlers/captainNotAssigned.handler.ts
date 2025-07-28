@@ -1,14 +1,17 @@
 import { EachMessagePayload } from "kafkajs";
 import prisma from "../../config/database.js";
 import { rideStatus } from "@prisma/client";
-import sendProducerMessage from "../producers/producerTemplate.js";
 
-async function captainNotFoundHandler({ message }: EachMessagePayload) {
+async function captainNotAssignedHandler({ message }: EachMessagePayload) {
     try {
         const { rideData } = JSON.parse(message.value!.toString());
         const { rideId } = rideData;
 
-        await prisma.rides.updateMany({
+        if (!rideId) {
+            throw new Error("rideId not available");         
+        }
+
+        await prisma.rides.update({
             where: {
                 rideId: rideId
             },
@@ -18,13 +21,9 @@ async function captainNotFoundHandler({ message }: EachMessagePayload) {
             }
         })
 
-        await sendProducerMessage("no-captain-found-notify", {rideData});
-
     } catch (error) {
-        if (error instanceof Error) {
-            console.log("Error in captain-not-found handler: " + error.message);
-        }
+        throw new Error("Error in captain-not-assigned handler: " + (error as Error).message);
     }
 }
 
-export default captainNotFoundHandler;
+export default captainNotAssignedHandler;

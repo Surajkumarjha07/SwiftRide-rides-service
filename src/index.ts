@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import startKafka from "./kafka/index.js";
+import startKafka from "./kafka/index.kafka.js";
 
 dotenv.config();
 
