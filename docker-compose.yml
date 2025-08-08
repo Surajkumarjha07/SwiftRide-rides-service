@@ -5,7 +5,7 @@ services:
     container_name: rides-service
     restart: always
     ports:
-      - "4030:4003"
+      - "5003:4003"
     env_file:
       - .env
     networks:
