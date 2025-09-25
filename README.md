@@ -7,8 +7,8 @@ This Rides Service is an internal backend service of SwiftRide (Ride-Sharing pla
 🚀 Features
 
 ✅ Manage ride data with full tracking  
-✅ Store and update **ride status** - `pending`, `in_progress`, `assigned`, `completed`, `cancelled`, `unassigned`  
-✅ Store and update **payment status** - `pending`, `success`, `failed`  
+✅ Store and update ride status - `pending`, `in_progress`, `assigned`, `completed`, `cancelled`, `unassigned`  
+✅ Store and update payment status - `pending`, `success`, `failed`  
 
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
