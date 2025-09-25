@@ -1,6 +1,6 @@
 🚙 Rides Service
 
-This Rides Service is an internal backend service of SwiftRide (Ride-Sharing platform), which is responsible for managing and creating rides.
+The Rides Service is an internal backend service of SwiftRide (Ride-Sharing platform), which is responsible for managing and creating rides.
 
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -60,7 +60,6 @@ Create a .env file and configure the following variables ->
 
 DATABASE_URL=your-database-url  
 PORT=your-port-number  
-JWT_SECRET=your-jwt-secret  
 
 4️⃣ Run the Application
 
