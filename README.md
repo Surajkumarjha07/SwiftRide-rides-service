@@ -1,6 +1,6 @@
 🚙 Rides Service
 
-The Rides Service is an internal backend service of SwiftRide (Ride-Sharing platform), which is responsible for managing and creating rides.
+This Rides Service is an internal backend service of SwiftRide (Ride-Sharing platform), which is responsible for managing and creating rides.
 
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
