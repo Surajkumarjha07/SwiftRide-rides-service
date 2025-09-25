@@ -21,7 +21,6 @@ const startKafka = async () => {
         console.log("Producer initializated");
 
         await getRideRequest();
-        // await captainsFetched();
         await rideAccepted();
         await rideCancelled();
         await captainNotFound();
