@@ -8,7 +8,7 @@ async function getRideRequest() {
             eachMessage: getRideRequestHandler
         })
     } catch (error) {
-        console.log("error in getting ride request: ", error);
+        throw new Error(`error in getting ride request:  ${(error as Error).message}`);
     }
 }
 

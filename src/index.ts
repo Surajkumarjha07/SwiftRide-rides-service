@@ -11,7 +11,7 @@ app.get("/", (req: Request, res: Response) => {
 })
 
 // kafka setup
-startKafka();
+await startKafka();
 
 app.listen(Number(process.env.PORT), "0.0.0.0", () => {
     console.log("Ride service is running!");
