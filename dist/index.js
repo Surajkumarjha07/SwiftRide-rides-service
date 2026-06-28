@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { Kafka, logLevel } from "kafkajs";
 var kafka = new Kafka({
   clientId: "ride-service",
-  brokers: ["localhost:9092"],
+  brokers: [process.env.KAFKA_BROKER || "localhost:9092"],
   connectionTimeout: 1e4,
   requestTimeout: 3e4,
   retry: {
