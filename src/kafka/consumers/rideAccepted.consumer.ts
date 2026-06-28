@@ -10,7 +10,7 @@ async function rideAccepted() {
         });
 
     } catch (error) {
-        console.log("error in accepting ride: ", error);
+        throw new Error(`error in accepting ride: ${(error as Error).message}`);
     }
 }
 
