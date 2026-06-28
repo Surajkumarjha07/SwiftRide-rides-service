@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # installing dependencies
-RUN npm install --omit=dev && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 # copying all files
 COPY . .
@@ -18,6 +18,8 @@ RUN npx prisma generate --schema=./prisma/schema.prisma
 
 # exposing port to 4003
 EXPOSE 4003
+
+RUN npm run build
 
 # cmd command
 CMD [ "npm", "start" ]
