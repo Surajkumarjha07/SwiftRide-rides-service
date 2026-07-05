@@ -13,6 +13,6 @@ app.get("/", (req: Request, res: Response) => {
 // kafka setup
 await startKafka();
 
-app.listen(Number(process.env.PORT), "0.0.0.0", () => {
+app.listen(Number(process.env.RIDE_SERVICE_PORT), "0.0.0.0", () => {
     console.log("Ride service is running!");
 })
